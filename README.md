@@ -46,6 +46,10 @@ python paraphrase.py --num_rounds 7
 python create_dataset_aug.py --round 6
 ```
 
+## Download data
+If you don't want to create dataset from scratch, you can download it from [here](https://drive.google.com/drive/folders/1245ifJQx1Wt8actLHVPvrWvdhqK89J49?usp=sharing).
+Put `data` directory in the current project.
+
 ## Training without paraphrases and evaluation
 ```bash
 python train_router.py \
