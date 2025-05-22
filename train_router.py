@@ -272,10 +272,10 @@ class Argument(Tap):
 
     def process_args(self):
         """Dynamically set paths based on the mode argument."""
-        self.train_features = f"data/{self.version}/layer_-1/train_features.pt"
-        self.train_labels = f"data/{self.version}/layer_-1/train_labels.pt"
-        self.val_features = f"data/{self.version}/layer_-1/val_features.pt"
-        self.val_labels = f"data/{self.version}/layer_-1/val_labels.pt"
+        self.train_features = f"data/{self.version}/train_features.pt"
+        self.train_labels = f"data/{self.version}/train_labels.pt"
+        self.val_features = f"data/{self.version}/val_features.pt"
+        self.val_labels = f"data/{self.version}/val_labels.pt"
 
 if __name__ == "__main__":
     args = Argument(explicit_bool=True).parse_args()

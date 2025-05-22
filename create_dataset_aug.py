@@ -1,17 +1,17 @@
 import json
 import os
+import gc
 
 import fire
-import numpy as np
 import torch
-from sklearn.model_selection import StratifiedShuffleSplit
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
 from models import LlamaToxicClassifier, Guardian
-from dataset import get_dataset
 
+LAYER_INDICES = [-1]
 
+@ torch.no_grad()
 def get_features_labels_items(batch_size, small_model, large_model, prompts, responses, labels):
     labels = torch.LongTensor(labels)
     
@@ -42,7 +42,6 @@ def get_features_labels_items(batch_size, small_model, large_model, prompts, res
     small_preds = torch.cat(small_preds, dim=0)
 
     large_preds = []
-    large_features = []
     large_model.eval()
     for batch in tqdm(dataloader, leave=False, dynamic_ncols=True, desc="large model"):
         ids = batch[0].tolist()
@@ -52,10 +51,13 @@ def get_features_labels_items(batch_size, small_model, large_model, prompts, res
         else:
             batch_response = None
         score = large_model.compute(batch_prompt, batch_response).exp().float().cpu()        
-        
         preds = (score > 0.5).long()
         large_preds.append(preds)
-        
+            
+        del score, preds     
+        gc.collect()
+        torch.cuda.empty_cache()
+
     large_preds = torch.cat(large_preds, dim=0)
     
     large_mask = torch.logical_and(small_preds != labels, large_preds == labels)
@@ -69,8 +71,9 @@ def get_features_labels_items(batch_size, small_model, large_model, prompts, res
     return features, targets, items
     
 
-def run(data_dir="data", batch_size=8, version=3):
-    dataset = get_dataset("wildguard-valid", 1.0)
+def run(round=0, data_dir="data", batch_size=16, version=3):
+    with open(os.path.join(data_dir, "aug", f"round{round}.json"), "r") as f:
+        dataset = json.load(f)
     
     prompts = dataset["prompts"]
     print(len(prompts)) 
@@ -81,52 +84,26 @@ def run(data_dir="data", batch_size=8, version=3):
 
     small_model = LlamaToxicClassifier(device=device, version="1b")
     small_model.eval()
+
     if version == "guardian":
-        large_model = Guardian(device)
-        print("guardian")
-    elif version in [1,2,3]:
-        print(f"llama-guard-{version}")
-        large_model = LlamaToxicClassifier(device=device, version=version)
+        large_model = Guardian(device=device)
     else:
-        raise NotImplementedError()
+        large_model = LlamaToxicClassifier(device=device, version=version)
     large_model.eval()
     
-    features, targets, items = get_features_labels_items(
+    features, targets, _ = get_features_labels_items(
         batch_size, small_model, large_model, prompts, responses, labels)
-
-
-    X = np.arange(len(items))
-    y = [item["label"] for item in items]
-    y = np.array(y)
-    # train / validation split
-    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.1, random_state=0)
-    train_idx, val_idx = next(sss.split(X, y))
-
-    train_items = [items[idx] for idx in train_idx]
-    val_items = [items[idx] for idx in val_idx]
     
-    train_features = torch.stack([features[idx] for idx in train_idx], dim=0)
-    train_targets = torch.FloatTensor([targets[idx].item() for idx in train_idx])
-    
-    val_features = torch.stack([features[idx] for idx in val_idx], dim=0)
-    val_targets = torch.FloatTensor([targets[idx] for idx in val_idx])
-    
-    output_dir = os.path.join(data_dir, f"{version}")    
+    output_dir = os.path.join(data_dir, f"{version}")
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    with open(os.path.join(output_dir,  "1B_8B_train.json"), "w") as f:
-        json.dump(train_items, f, indent=2)
-
-    torch.save(train_features, os.path.join(output_dir, "train_features.pt"))
-    torch.save(train_targets, os.path.join(output_dir, "train_labels.pt"))
-
-    torch.save(val_features, os.path.join(output_dir, "val_features.pt"))
-    torch.save(val_targets, os.path.join(output_dir, "val_labels.pt"))
+    # small features
+    torch.save(features, os.path.join(output_dir, f"round{round}_features.pt"))
     
-    print(f"# 1: {torch.sum(targets).item()} / {targets.size(0)}")
-    with open(os.path.join(output_dir, "1B_8B_val.json"), "w") as f:
-        json.dump(val_items, f, indent=2)
+    # targets
+    torch.save(targets, os.path.join(output_dir, f"round{round}_labels.pt"))
+    
 
 if __name__ == "__main__":
     fire.Fire(run)

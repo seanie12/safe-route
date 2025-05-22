@@ -30,19 +30,52 @@ conda activate saferoute
 pip install -r requirements.txt
 ```
 
-## Create Dataset
+## Create dataset w/o paraphrasing
 Create training dataset of SafeRoute. Youn can choose either 3 or guardian for the version argument. You may need to adjust batch size.
 ```bash
 python main.py --version 3
 ```
 
+## Create dataset with paraphrasing
+Create training dataset of SafeRoute. Youn can choose either 3 or guardian for the version argument. You may need to adjust batch size.
+```bash
+python paraphrase.py --num_rounds 7
+```
+
+```bash
+python create_dataset_aug.py --round 6
+```
+
 ## Training without paraphrases and evaluation
 ```bash
-python train_router.py --version 3
+python train_router.py \
+--version 3 \
+--train_features ./data/{version}/train_features.pt \
+--train_labels ./data/{version}/train_labels.pt \
+--val_features ./data/{version}/val_features.pt \
+--val_labels ./data/{version}/val_labels.pt
 ```
 
 ```bash
 python eval.py --version 3
 ```
+
+
+
+## Training without paraphrases and evaluation
+```bash
+python train_router.py \
+--version 3 \
+--train_features ./data/{version}/round6_train_features.pt \
+--train_labels ./data/{version}/round6_train_labels.pt \
+--val_features ./data/{version}/round6_val_features.pt \
+--val_labels ./data/{version}/round6_val_labels.pt
+```
+
+```bash
+python eval.py --version 3
+```
+
+
 
 
