@@ -1,8 +1,6 @@
-# Learning Diverse Attacks on Large Language Models for Robust Red-teaming and Safety Tuning
+# SafeRoute: Adaptive Model Selection for Efficient and Accurate Safety Guardrails in Large Language Models
 
-This repository contains code for Red-teaming with GFlowNet, as described in the paper.
-
-**Note**: We are actively working on testing and cleaning up the code for release. If you encounter issues before that please let us know!
+This repository contains code for SafeRoute, as described in the paper.
 
 
 **SafeRoute: Adaptive Model Selection for Efficient and Accurate Safety Guardrails in Large Language Models**<br />
@@ -16,7 +14,7 @@ BibTeX
 ```bibtex
 @article{
 lee2025learning,
-title={Learning Diverse Attacks on Large Language Models for Robust Red-Teaming and Safety Tuning},
+title={SafeRoute: Adaptive Model Selection for Efficient and Accurate Safety Guardrails in Large Language Models},
 author={Lee, Seanie and Lee, Dong Bok and Wagner, Dominik and Kang, Minki and Seong, Haebin and Bocklet, Tobias and Lee, Juho and Hwang, Sung Ju},
 journal={Findings of the Association for Computational Linguistics (ACL)},
 year={2025}
