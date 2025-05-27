@@ -30,6 +30,10 @@ class Trainer(object):
         train_features = torch.load(args.train_features, map_location="cpu")
         train_labels = torch.load(args.train_labels, map_location="cpu").long()
 
+        for r in range(args.num_rounds):
+            train_features = torch.cat([train_features, torch.load(args.aug_features[r], map_location="cpu")])
+            train_labels = torch.cat([train_labels, torch.load(args.aug_labels[r], map_location="cpu")])
+
         val_features = torch.load(args.val_features, map_location="cpu")
         val_labels = torch.load(args.val_labels, map_location="cpu").long()
 
@@ -255,7 +259,8 @@ class Argument(Tap):
     train_labels: str = None
     val_features: str = None
     val_labels: str = None
-
+    num_rounds: int = 7
+    
     # Other optional arguments
     lr: float = 1e-3
     max_norm: float = 1.0
@@ -277,6 +282,13 @@ class Argument(Tap):
         self.val_features = f"data/{self.version}/val_features.pt"
         self.val_labels = f"data/{self.version}/val_labels.pt"
 
+        self.aug_features = []
+        self.aug_labels = []
+        if self.num_rounds > 0:
+            for r in range(self.num_rounds):
+                self.aug_features.append(f"data/{self.version}/round{r}_features.pt")
+                self.aug_labels.append(f"data/{self.version}/round{r}_labels.pt")
+            
 if __name__ == "__main__":
     args = Argument(explicit_bool=True).parse_args()
     args.process_args()
