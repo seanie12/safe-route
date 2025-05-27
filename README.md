@@ -53,11 +53,7 @@ Put `data` directory in the current project.
 ## Training without paraphrases and evaluation
 ```bash
 python train_router.py \
---version 3 \
---train_features ./data/{version}/train_features.pt \
---train_labels ./data/{version}/train_labels.pt \
---val_features ./data/{version}/val_features.pt \
---val_labels ./data/{version}/val_labels.pt
+--version {"3" or "guardian"} \
 ```
 
 ```bash
@@ -66,14 +62,11 @@ python eval.py --version 3
 
 
 
-## Training without paraphrases and evaluation
+## Training with paraphrases and evaluation
 ```bash
 python train_router.py \
---version 3 \
---train_features ./data/{version}/round6_train_features.pt \
---train_labels ./data/{version}/round6_train_labels.pt \
---val_features ./data/{version}/round6_val_features.pt \
---val_labels ./data/{version}/round6_val_labels.pt
+--version {"3" or "guardian"} \
+--round 7
 ```
 
 ```bash
